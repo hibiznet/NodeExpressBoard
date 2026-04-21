@@ -1,0 +1,105 @@
+<section class="card">
+  <h1>관리자 대시보드</h1>
+  <div class="grid-2">
+    <div class="card muted">
+      <h3>카테고리 등록</h3>
+      <form method="post" action="/admin/categories" class="form-grid">
+        <input type="text" name="name" placeholder="카테고리명" required />
+        <input type="text" name="slug" placeholder="slug" required />
+        <input type="number" name="sort_order" placeholder="정렬순서" value="0" />
+        <label class="checkbox-inline"><input type="checkbox" name="is_active" checked /> 사용</label>
+        <button class="btn" type="submit">등록</button>
+      </form>
+    </div>
+    <div class="card muted">
+      <h3>게시판 등록</h3>
+      <form method="post" action="/admin/boards" class="form-grid">
+        <select name="category_id">
+          <option value="">카테고리 없음</option>
+          <% categories.forEach(category => { %>
+            <option value="<%= category.id %>"><%= category.name %></option>
+          <% }) %>
+        </select>
+        <input type="text" name="name" placeholder="게시판명" required />
+        <input type="text" name="description" placeholder="설명" />
+        <label class="checkbox-inline"><input type="checkbox" name="allow_guest_post" /> 비회원 글쓰기 허용</label>
+        <label class="checkbox-inline"><input type="checkbox" name="allow_guest_comment" /> 비회원 댓글 허용</label>
+        <label class="checkbox-inline"><input type="checkbox" name="is_active" checked /> 사용</label>
+        <button class="btn" type="submit">등록</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="grid-2">
+  <div class="card">
+    <h2>회원 관리</h2>
+    <% users.forEach(user => { %>
+      <form method="post" action="/admin/users/<%= user.id %>?_method=PUT" class="inline-edit-row">
+        <span><strong><%= user.name %></strong> / <%= user.email %></span>
+        <select name="role">
+          <option value="USER" <%= user.role === 'USER' ? 'selected' : '' %>>USER</option>
+          <option value="ADMIN" <%= user.role === 'ADMIN' ? 'selected' : '' %>>ADMIN</option>
+        </select>
+        <select name="status">
+          <option value="ACTIVE" <%= user.status === 'ACTIVE' ? 'selected' : '' %>>ACTIVE</option>
+          <option value="INACTIVE" <%= user.status === 'INACTIVE' ? 'selected' : '' %>>INACTIVE</option>
+        </select>
+        <button class="btn btn-small">저장</button>
+      </form>
+    <% }) %>
+  </div>
+
+  <div class="card">
+    <h2>카테고리 관리</h2>
+    <% categories.forEach(category => { %>
+      <form method="post" action="/admin/categories/<%= category.id %>?_method=PUT" class="inline-edit-row grid-row-4">
+        <input type="text" name="name" value="<%= category.name %>" required />
+        <input type="text" name="slug" value="<%= category.slug %>" required />
+        <input type="number" name="sort_order" value="<%= category.sort_order %>" />
+        <label><input type="checkbox" name="is_active" <%= category.is_active ? 'checked' : '' %> /> 사용</label>
+        <button class="btn btn-small">저장</button>
+      </form>
+    <% }) %>
+  </div>
+</section>
+
+<section class="grid-2">
+  <div class="card">
+    <h2>게시판 관리</h2>
+    <% boards.forEach(board => { %>
+      <form method="post" action="/admin/boards/<%= board.id %>?_method=PUT" class="form-grid muted box-gap">
+        <input type="text" name="name" value="<%= board.name %>" required />
+        <input type="text" name="description" value="<%= board.description || '' %>" />
+        <select name="category_id">
+          <option value="">카테고리 없음</option>
+          <% categories.forEach(category => { %>
+            <option value="<%= category.id %>" <%= String(board.category_id) === String(category.id) ? 'selected' : '' %>><%= category.name %></option>
+          <% }) %>
+        </select>
+        <label><input type="checkbox" name="allow_guest_post" <%= board.allow_guest_post ? 'checked' : '' %> /> 비회원 글쓰기</label>
+        <label><input type="checkbox" name="allow_guest_comment" <%= board.allow_guest_comment ? 'checked' : '' %> /> 비회원 댓글</label>
+        <label><input type="checkbox" name="is_active" <%= board.is_active ? 'checked' : '' %> /> 사용</label>
+        <button class="btn btn-small">저장</button>
+      </form>
+    <% }) %>
+  </div>
+
+  <div class="card">
+    <h2>최근 게시글 관리</h2>
+    <table class="table">
+      <thead><tr><th>ID</th><th>게시판</th><th>제목</th><th>작성자</th><th>상태</th></tr></thead>
+      <tbody>
+        <% posts.forEach(post => { %>
+          <tr>
+            <td><%= post.id %></td>
+            <td><%= post.board_name %></td>
+            <td><a href="/boards/<%= post.id %>"><%= post.title %></a></td>
+            <td><%= post.author_name %></td>
+            <td><%= post.deleted_at ? '삭제됨' : '정상' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>

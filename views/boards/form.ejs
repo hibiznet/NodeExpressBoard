@@ -1,0 +1,72 @@
+<section class="card">
+  <h1><%= post ? '게시글 수정' : '게시글 작성' %></h1>
+  <form method="post" action="<%= post ? '/boards/' + post.id + '?_method=PUT' : '/boards' %>" enctype="multipart/form-data" class="form-grid">
+    <div class="grid-2">
+      <label>게시판
+        <select name="board_id" required>
+          <option value="">선택</option>
+          <% boards.forEach(board => { %>
+            <option value="<%= board.id %>" <%= String(post?.board_id) === String(board.id) ? 'selected' : '' %>><%= board.name %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label>카테고리
+        <select name="category_id">
+          <option value="">선택</option>
+          <% categories.forEach(category => { %>
+            <option value="<%= category.id %>" <%= String(post?.category_id) === String(category.id) ? 'selected' : '' %>><%= category.name %></option>
+          <% }) %>
+        </select>
+      </label>
+    </div>
+
+    <% if (!currentUser && !post) { %>
+      <div class="grid-2">
+        <label>비회원 이름<input type="text" name="guest_name" required /></label>
+        <label>비회원 비밀번호<input type="password" name="guest_password" required /></label>
+      </div>
+    <% } %>
+
+    <label>제목<input type="text" name="title" value="<%= post?.title || '' %>" required /></label>
+
+    <label>내용</label>
+    <div id="editor" class="editor-box"><%- post?.content || '' %></div>
+    <input type="hidden" name="content" id="content-input" />
+
+    <% if (currentUser?.role === 'ADMIN') { %>
+      <label class="checkbox-inline"><input type="checkbox" name="is_notice" <%= post?.is_notice ? 'checked' : '' %> /> 공지글</label>
+    <% } %>
+
+    <label>첨부파일<input type="file" name="attachments" multiple /></label>
+    <% if (files && files.length) { %>
+      <div class="card muted">
+        <strong>기존 첨부파일</strong>
+        <ul>
+          <% files.forEach(file => { %>
+            <li>
+              <a href="<%= file.file_path %>" target="_blank"><%= file.original_name %></a>
+              <form method="post" action="/boards/<%= post.id %>/files/<%= file.id %>?_method=DELETE" class="inline-form">
+                <button type="submit" class="btn btn-small btn-outline">삭제</button>
+              </form>
+            </li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+
+    <div class="flex-row">
+      <button class="btn" type="submit">저장</button>
+      <a class="btn btn-outline" href="/boards">취소</a>
+    </div>
+  </form>
+</section>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const quill = new Quill('#editor', { theme: 'snow' });
+    const form = document.querySelector('form');
+    const input = document.getElementById('content-input');
+    form.addEventListener('submit', function() {
+      input.value = quill.root.innerHTML;
+    });
+  });
+</script>

@@ -1,0 +1,28 @@
+<header class="site-header">
+  <div class="container flex-between">
+    <div>
+      <a class="logo" href="/boards">통합게시판</a>
+      <nav>
+        <% categories.forEach(category => { %>
+          <a href="/boards?category_id=<%= category.id %>"><%= category.name %></a>
+        <% }) %>
+      </nav>
+    </div>
+    <div class="header-actions">
+      <% if (currentUser) { %>
+        <span><strong><%= currentUser.name %></strong> (<%= currentUser.role %>)</span>
+        <a href="/boards/new" class="btn">글쓰기</a>
+        <% if (currentUser.role === 'ADMIN') { %>
+          <a href="/admin" class="btn btn-dark">관리자</a>
+        <% } %>
+        <form method="post" action="/logout" class="inline-form">
+          <button class="btn btn-outline" type="submit">로그아웃</button>
+        </form>
+      <% } else { %>
+        <a href="/boards/new" class="btn">비회원 글쓰기</a>
+        <a href="/login" class="btn btn-outline">로그인</a>
+        <a href="/register" class="btn btn-dark">회원가입</a>
+      <% } %>
+    </div>
+  </div>
+</header>

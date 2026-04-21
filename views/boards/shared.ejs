@@ -1,0 +1,20 @@
+<section class="card">
+  <div class="meta">공유된 게시글</div>
+  <h1><%= post.title %></h1>
+  <div class="meta">게시판: <%= post.board_name %> / 작성자: <%= post.author_name %> / 좋아요: <%= post.like_count %></div>
+  <article class="content-box"><%- post.content %></article>
+  <h3>첨부파일</h3>
+  <ul>
+    <% files.forEach(file => { %>
+      <li><a href="<%= file.file_path %>" target="_blank"><%= file.original_name %></a></li>
+    <% }) %>
+    <% if (!files.length) { %><li>첨부파일 없음</li><% } %>
+  </ul>
+  <h3>댓글</h3>
+  <ul>
+    <% comments.forEach(comment => { %>
+      <li><strong><%= comment.author_name %></strong>: <%= comment.content %></li>
+    <% }) %>
+    <% if (!comments.length) { %><li>댓글 없음</li><% } %>
+  </ul>
+</section>

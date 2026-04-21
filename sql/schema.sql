@@ -1,0 +1,104 @@
+DROP DATABASE IF EXISTS itgboard;
+CREATE DATABASE itgboard CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+GRANT ALL PRIVILEGES ON itgboard.* to dbuser@localhost identified by 'dbuser9123' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
+USE itgboard;
+
+CREATE TABLE users (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(120) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  name VARCHAR(80) NOT NULL,
+  role ENUM('ADMIN','USER') NOT NULL DEFAULT 'USER',
+  status ENUM('ACTIVE','INACTIVE') NOT NULL DEFAULT 'ACTIVE',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE categories (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(80) NOT NULL,
+  slug VARCHAR(80) NOT NULL UNIQUE,
+  sort_order INT NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE boards (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  category_id BIGINT NULL,
+  name VARCHAR(100) NOT NULL,
+  description VARCHAR(255) NULL,
+  allow_guest_post TINYINT(1) NOT NULL DEFAULT 0,
+  allow_guest_comment TINYINT(1) NOT NULL DEFAULT 0,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_boards_category FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+CREATE TABLE posts (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  board_id BIGINT NOT NULL,
+  category_id BIGINT NULL,
+  user_id BIGINT NULL,
+  guest_name VARCHAR(80) NULL,
+  guest_password VARCHAR(255) NULL,
+  title VARCHAR(200) NOT NULL,
+  content LONGTEXT NOT NULL,
+  view_count INT NOT NULL DEFAULT 0,
+  is_notice TINYINT(1) NOT NULL DEFAULT 0,
+  share_token CHAR(36) NOT NULL UNIQUE,
+  created_ip VARCHAR(45) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at DATETIME NULL,
+  CONSTRAINT fk_posts_board FOREIGN KEY (board_id) REFERENCES boards(id),
+  CONSTRAINT fk_posts_category FOREIGN KEY (category_id) REFERENCES categories(id),
+  CONSTRAINT fk_posts_user FOREIGN KEY (user_id) REFERENCES users(id),
+  INDEX idx_posts_board_created (board_id, created_at DESC),
+  INDEX idx_posts_category_created (category_id, created_at DESC)
+);
+
+CREATE TABLE comments (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  post_id BIGINT NOT NULL,
+  parent_comment_id BIGINT NULL,
+  user_id BIGINT NULL,
+  guest_name VARCHAR(80) NULL,
+  guest_password VARCHAR(255) NULL,
+  content TEXT NOT NULL,
+  created_ip VARCHAR(45) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  deleted_at DATETIME NULL,
+  CONSTRAINT fk_comments_post FOREIGN KEY (post_id) REFERENCES posts(id),
+  CONSTRAINT fk_comments_parent FOREIGN KEY (parent_comment_id) REFERENCES comments(id),
+  CONSTRAINT fk_comments_user FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE files (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  post_id BIGINT NOT NULL,
+  original_name VARCHAR(255) NOT NULL,
+  saved_name VARCHAR(255) NOT NULL,
+  file_path VARCHAR(255) NOT NULL,
+  mime_type VARCHAR(120) NULL,
+  file_size BIGINT NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_files_post FOREIGN KEY (post_id) REFERENCES posts(id)
+);
+
+CREATE TABLE likes (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  post_id BIGINT NOT NULL,
+  user_id BIGINT NULL,
+  guest_ip VARCHAR(45) NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_likes_post FOREIGN KEY (post_id) REFERENCES posts(id),
+  CONSTRAINT fk_likes_user FOREIGN KEY (user_id) REFERENCES users(id),
+  UNIQUE KEY uk_likes_post_user (post_id, user_id),
+  UNIQUE KEY uk_likes_post_guestip (post_id, guest_ip)
+);

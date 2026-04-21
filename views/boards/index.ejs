@@ -1,0 +1,75 @@
+<section class="toolbar card">
+  <form method="get" action="/boards" class="search-grid">
+    <select name="board_id">
+      <option value="">전체 게시판</option>
+      <% boards.forEach(board => { %>
+        <option value="<%= board.id %>" <%= String(filters.boardId) === String(board.id) ? 'selected' : '' %>><%= board.name %></option>
+      <% }) %>
+    </select>
+    <select name="category_id">
+      <option value="">전체 카테고리</option>
+      <% categories.forEach(category => { %>
+        <option value="<%= category.id %>" <%= String(filters.categoryId) === String(category.id) ? 'selected' : '' %>><%= category.name %></option>
+      <% }) %>
+    </select>
+    <input type="text" name="keyword" value="<%= filters.keyword %>" placeholder="제목/내용/작성자 검색" />
+    <button class="btn" type="submit">검색</button>
+    <a href="/boards/new" class="btn btn-dark">글쓰기</a>
+  </form>
+</section>
+
+<section class="grid-2">
+  <aside class="card">
+    <h3>게시판 목록</h3>
+    <ul class="plain-list">
+      <% boards.forEach(board => { %>
+        <li>
+          <a href="/boards?board_id=<%= board.id %>"><strong><%= board.name %></strong></a>
+          <div class="meta"><%= board.description %></div>
+          <div class="meta">카테고리: <%= board.category_name || '-' %> / 글수: <%= board.post_count %></div>
+        </li>
+      <% }) %>
+    </ul>
+  </aside>
+
+  <section class="card">
+    <h1>통합게시글</h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>게시판</th>
+          <th>카테고리</th>
+          <th>제목</th>
+          <th>작성자</th>
+          <th>조회</th>
+          <th>좋아요</th>
+          <th>작성일</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% posts.forEach(post => { %>
+          <tr>
+            <td><%= post.id %></td>
+            <td><%= post.board_name %></td>
+            <td><%= post.category_name || '-' %></td>
+            <td>
+              <% if (post.is_notice) { %><span class="badge">공지</span><% } %>
+              <a href="/boards/<%= post.id %>"><%= post.title %></a>
+              <span class="meta">[댓글 <%= post.comment_count %> / 파일 <%= post.file_count %>]</span>
+            </td>
+            <td><%= post.author_name %></td>
+            <td><%= post.view_count %></td>
+            <td><%= post.like_count %></td>
+            <td><%= dayjs(post.created_at).format('YYYY-MM-DD HH:mm') %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <div class="pagination">
+      <% for(let i=1; i <= pagination.totalPages || i===1; i++) { %>
+        <a class="page-link <%= i === pagination.page ? 'active' : '' %>" href="/boards?page=<%= i %>&board_id=<%= filters.boardId %>&category_id=<%= filters.categoryId %>&keyword=<%= encodeURIComponent(filters.keyword || '') %>"><%= i %></a>
+      <% } %>
+    </div>
+  </section>
+</section>
