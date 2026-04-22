@@ -103,3 +103,6 @@ This project normalizes MariaDB `BIGINT` values before they reach session serial
 - Safe-range `BIGINT` values are converted to JavaScript `Number`.
 - Out-of-range `BIGINT` values are converted to `String`.
 - Session user IDs are always stored as strings to avoid `JSON.stringify` failures in `express-session`.
+
+## 화면
+![alt text](image.png)
